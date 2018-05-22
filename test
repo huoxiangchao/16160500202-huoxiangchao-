@@ -1,0 +1,109 @@
+#include "LPC11xx.h"                    // Device header
+#define LED1_ON()  (LPC_GPIO2->DATA &= ~(1<<0))
+#define LED1_OFF() (LPC_GPIO2->DATA |= (1<<0))
+
+#define LED2_ON()  (LPC_GPIO2->DATA &= ~(1<<1))
+#define LED2_OFF() (LPC_GPIO2->DATA |= (1<<1))
+
+#define LED3_ON()  (LPC_GPIO2->DATA &= ~(1<<2))
+#define LED3_OFF() (LPC_GPIO2->DATA |= (1<<2))
+
+/********************************************************************************
+* FunctionName   : LEDInit()
+* Description    : LED³õÊ¼»¯º¯Êý
+* EntryParameter : None
+* ReturnValue    : None
+********************************************************************************/
+
+void LedInit()
+{
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<16); //Ê¹ÄÜIOCONÊ±ÖÓ
+    LPC_IOCON->PIO2_0 &= ~0x07;    
+    LPC_IOCON->PIO2_0 |= 0x00; //°ÑP2.0¹Ü½ÅÉèÖÃÎªGPIO
+	
+	  LPC_IOCON->PIO2_1 &= ~0x07; 
+    LPC_IOCON->PIO2_1 |= 0x00; //°ÑP2.1¹Ü½ÅÉèÖÃÎªGPIO
+		
+	  LPC_IOCON->PIO2_1 &= ~0x07; 
+    LPC_IOCON->PIO2_2 |= 0x00; //°ÑP2.3¹Ü½ÅÉèÖÃÎªGPIO
+	
+    LPC_SYSCON->SYSAHBCLKCTRL &= ~(1<<16); // ½ûÄÜIOCONÊ±ÖÓ
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<6);     // Ê¹ÄÜGPIO
+    LPC_GPIO2->DIR  |= (1<<0); ; // °ÑP2.0ÉèÖÃÎªÊä³öÒý½Å
+    LPC_GPIO2->DATA |= (1<<0); ; // °ÑP2.0ÉèÖÃÎª¸ßµçÆ½
+	
+	  LPC_GPIO2->DIR  |= (1<<1); ; // °ÑP2.1ÉèÖÃÎªÊä³öÒý½Å
+    LPC_GPIO2->DATA |= (1<<1); ; // °ÑP2.1ÉèÖÃÎª¸ßµçÆ½
+	
+	  LPC_GPIO2->DIR  |= (1<<2); ; // °ÑP2.1ÉèÖÃÎªÊä³öÒý½Å
+    LPC_GPIO2->DATA |= (1<<2); ; // °ÑP2.2ÉèÖÃÎª¸ßµçÆ½
+	
+	}
+/********************************************************************************
+* FunctionName   : TIMER32_0_IRQHandler ()
+* Description    : 32Î»¶¨Ê±Æ÷³õÊ¼»¯º¯Êý
+* EntryParameter : None
+* ReturnValue    : None
+********************************************************************************/
+
+void TIMER32_0_IRQHandler (void)
+{
+    LPC_TMR32B0->IR = 0x01;                                 //ÏòÆ¥ÅäÍ¨µÀ0Ð´1Çå³ýÖÐ¶Ï
+    if (LPC_GPIO2->DATA & (1<<0)) 
+    {
+            LED1_ON();                                                        //µãÁÁLED
+    } 
+    else 
+    {
+            LED2_ON();                                                       //Ï¨ÃðLED
+    }
+		
+	/*	if (LPC_GPIO2->DATA & (1<<1)) 
+    {
+            LED2_ON();                                                        //µãÁÁLED
+    } 
+    else 
+    {
+            LED2_OFF();                                                       //Ï¨ÃðLED
+    }*/
+		
+		}
+/********************************************************************************
+* FunctionName   : Timer0Init()
+* Description    : 32Î»¶¨Ê±Æ÷ÊµÏÖºÁÃë¼¶ÑÓÊ±º¯Êý
+* EntryParameter : None
+* ReturnValue    : None
+********************************************************************************/
+void Timer0Init (void)
+{
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 9);  //Ê¹ÄÜTIM32B0Ê±ÖÓ
+    LPC_TMR32B0->IR      = 0x01; //MR0ÖÐ¶Ï¸´Î»£¬¼´ÇåÖÐ¶Ï(bit0:MR0, bit1:MR1, bit2:MR2, bit3:MR3, bit4:CP0)
+    LPC_TMR32B0->PR      = 0;                           //Ã¿Ò»¸öPCLK¼Ó1
+    LPC_TMR32B0->MCR     = 0x03;                    //MR0Æ¥ÅäÊ±¸´Î»TC,²¢²úÉúÖÐ¶Ï
+    LPC_TMR32B0->MR0     = SystemCoreClock/2; //Æ¥ÅäÊ±¼ä£¬Ò²¾ÍÊÇ¶¨Ê±Ê±¼ä
+    LPC_TMR32B0->TCR     = 0x01;                    //Æô¶¯¼ÆÊýÆ÷:TCR[0]=1;
+    NVIC_EnableIRQ(TIMER_32_0_IRQn);            //Ê¹ÄÜÖÐ¶Ï
+}
+
+
+void Delay(void)
+{
+  uint16_t i,j;
+	for(i=0;1<5000;i++)
+	   for(j=0;j<200;j++);
+	   
+}
+
+/********************************************************************************
+* FunctionName   : main()
+* Description    : Ö÷º¯Êý
+* EntryParameter : None
+* ReturnValue    : None
+********************************************************************************/
+
+int main(void)
+{
+    LedInit();
+    Timer0Init();
+    while(1);
+}
